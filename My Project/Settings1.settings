@@ -1,0 +1,13 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)">
+  <Profiles>
+    <Profile Name="(Default)" />
+	  <add key="AutoConnect" value="1"/>
+	  <add key="RefreshTimer" value="2"/>
+  </Profiles>
+	<Profiles>
+		<Profile Name="UserSet" />
+		<add key="AutoConnect" value="1"/>
+		<add key="RefreshTimer" value="2"/>
+	</Profiles>
+</SettingsFile>
