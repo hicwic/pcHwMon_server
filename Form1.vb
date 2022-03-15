@@ -303,17 +303,28 @@ Public Class FormMain
             End Select
         Next
 
-        'FPS
-        Dim appEntries = OSD.GetAppEntries()
-        For Each app In appEntries
-            If app.InstantaneousFrames > 0 Then
-                ValueFPS = CInt(app.InstantaneousFrames) 'FPS
-                SendDataToArduino(KeyFPS, ValueFPS)
-            ElseIf ValueFPS <> -1 Then
-                ValueFPS = -1
-                SendDataToArduino(KeyFPS, ValueFPS)
+        Try
+            'FPS
+            Dim appEntries = OSD.GetAppEntries()
+            For Each app In appEntries
+                If app.InstantaneousFrames > 0 Then
+                    ValueFPS = CInt(app.InstantaneousFrames) 'FPS
+                    SendDataToArduino(KeyFPS, ValueFPS)
+                ElseIf ValueFPS <> -1 Then
+                    ValueFPS = -1
+                    SendDataToArduino(KeyFPS, ValueFPS)
+                End If
+            Next
+        Catch ex As Exception
+            If Me.WindowState = FormWindowState.Normal Then
+                ListBox1.Items.Add("RTSS is missing... skipping FPS")
+                For i = 0 To ListBox1.Items.Count - 50
+                    ListBox1.Items.RemoveAt(0)
+                Next
+                ListBox1.TopIndex = ListBox1.Items.Count - 1
             End If
-        Next
+        End Try
+
 
     End Sub
 
