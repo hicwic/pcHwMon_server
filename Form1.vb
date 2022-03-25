@@ -1,8 +1,9 @@
-﻿Imports OpenHardwareMonitor.Hardware
+﻿'Imports OpenHardwareMonitor.Hardware
 Imports System.IO
 Imports System.IO.Ports
 Imports System.ComponentModel
 Imports RTSSSharedMemoryNET
+Imports LibreHardwareMonitor.Hardware
 
 Public Class FormMain
 
@@ -11,6 +12,7 @@ Public Class FormMain
     ' Dim SerialPort1 As New SerialPort
     Dim ArduinoConnected As Boolean
     Dim RefreshTime As Integer
+    Dim FormCloseBool As Boolean = False
 
     'Keys
     Const KeyCPUName As Byte = 1
@@ -46,6 +48,12 @@ Public Class FormMain
 
     Dim ValueFPS As Short = -1
 
+    Private Sub FormMain_FormClosing(sender As Object, e As System.Windows.Forms.FormClosingEventArgs) Handles Me.FormClosing
+        If Not FormCloseBool Then
+            Me.WindowState = FormWindowState.Minimized
+            e.Cancel = True
+        End If
+    End Sub
 
     Private Sub FormMain_Load(sender As Object, e As EventArgs) Handles MyBase.Load
 
@@ -65,10 +73,14 @@ Public Class FormMain
         LblRefresh.Text = "Refresh time: " + CStr(RefreshTime) + " milliseconds"
         Timer1.Interval = RefreshTime
         Timer1.Start()
-        cp.GPUEnabled = True
-        cp.CPUEnabled = True
-        cp.RAMEnabled = True
-        cp.MainboardEnabled = True
+
+        cp.IsGpuEnabled = True
+        cp.IsCpuEnabled = True
+        cp.IsMemoryEnabled = True
+        cp.IsMotherboardEnabled = True
+        cp.IsStorageEnabled = True
+        cp.IsPsuEnabled = True
+
         'cp.FanControllerEnabled = True
 
         cp.Open()
@@ -104,7 +116,9 @@ Public Class FormMain
                 Dim ListeningWatch As New Stopwatch
                 Dim serialMessage As String
 
-                SerialPort1.Write("*****;")
+                SerialPort1.Write("*****:")
+                Debug.Print("Trying to contact arduino " + sp.ToString)
+
 
                 ListeningWatch.Start()
                 While ListeningWatch.ElapsedMilliseconds < 3000 And ListeningWatch.IsRunning
@@ -132,6 +146,10 @@ Public Class FormMain
                 ArduinoConnected = False
                 Exit Try
             End Try
+
+            If SerialPort1.IsOpen Then
+                SerialPort1.Close()
+            End If
 
         Next
         If ArduinoConnected = False Then
@@ -173,6 +191,9 @@ Public Class FormMain
             Try
                 SerialPort1.Write(CStr(key) + ":" + CStr(value) + ";")
             Catch ex As InvalidOperationException
+                Me.ConnMenuToolStripMenuItem.PerformClick()
+            Catch ex As IOException
+                Debug.Print("dslfmksdlmkfjsflkgjsdflkgjmklsdfjgmldfkgj")
                 Me.ConnMenuToolStripMenuItem.PerformClick()
             End Try
         End If
@@ -269,7 +290,7 @@ Public Class FormMain
                     For Each sensor In hw.Sensors
                         Select Case sensor.SensorType
                             Case SensorType.Temperature
-                                If CSByte(sensor.Value) <> ValueGPUTemp Then
+                                If sensor.Name.Contains("Core") And CSByte(sensor.Value) <> ValueGPUTemp Then
                                     ValueGPUTemp = sensor.Value 'GpuTemp
                                     SendDataToArduino(KeyGPUTemp, ValueGPUTemp)
                                 End If
@@ -278,27 +299,45 @@ Public Class FormMain
                                     ValueGPULoad = sensor.Value 'GpuLoad
                                     SendDataToArduino(KeyGPULoad, ValueGPULoad)
                                 End If
-                            Case SensorType.Fan
-                                ValueGPUFan = sensor.Value 'GpuFan
-                                SendDataToArduino(KeyGPUFan, ValueGPUFan)
+                            Case SensorType.Control
+                                If CSByte(sensor.Value) <> ValueGPUFan Then
+                                    ValueGPUFan = sensor.Value 'GpuFan
+                                    SendDataToArduino(KeyGPUFan, ValueGPUFan)
+                                End If
                         End Select
                     Next
-                Case HardwareType.RAM 'RAM stuff
+                Case HardwareType.Memory  'RAM stuff
                     For Each sensor In hw.Sensors
-                        If sensor.SensorType = SensorType.Load And CSByte(sensor.Value) <> ValueRAMLoad Then
+                        If sensor.SensorType = SensorType.Load And sensor.Name = "Memory" And CSByte(sensor.Value) <> ValueRAMLoad Then
                             ValueRAMLoad = sensor.Value 'RAMLoad
                             SendDataToArduino(KeyRAMLoad, ValueRAMLoad)
                         End If
                     Next
-                Case HardwareType.Mainboard   'MoBo stuff
+                Case HardwareType.Motherboard    'MoBo stuff
                     For Each subHard In hw.SubHardware
                         subHard.Update()
                         For Each sensor In subHard.Sensors
-                            If sensor.SensorType = 2 And sensor.Name.Contains("#2") And CSByte(sensor.Value) <> ValueMBDTemp Then
-                                ValueMBDTemp = sensor.Value 'MoboTemp
-                                SendDataToArduino(KeyMBDTemp, ValueMBDTemp)
+                            If sensor.SensorType = 2 And sensor.Name.Contains("#2") Then
+                                If CSByte(sensor.Value) <> ValueMBDTemp Then
+                                    ValueMBDTemp = sensor.Value 'MoboTemp
+                                    SendDataToArduino(KeyMBDTemp, ValueMBDTemp)
+                                End If
                             End If
                         Next
+                    Next
+                Case HardwareType.Storage
+                    For Each sensor In hw.Sensors
+                        Select Case sensor.SensorType
+                            Case SensorType.Temperature
+                                If ValueDD1Temp <> CSByte(sensor.Value) Then
+                                    ValueDD1Temp = sensor.Value 'HDD1 Temp
+                                    SendDataToArduino(KeyDD1Temp, ValueDD1Temp)
+                                End If
+                                If ValueDD2Temp <> CSByte(sensor.Value) Then
+                                    ValueDD2Temp = sensor.Value 'HDD2 Temp
+                                    SendDataToArduino(KeyDD2Temp, ValueDD2Temp)
+                                End If
+                        End Select
                     Next
             End Select
         Next
@@ -306,15 +345,19 @@ Public Class FormMain
         Try
             'FPS
             Dim appEntries = OSD.GetAppEntries()
+            Dim registerFPS As Boolean = False
             For Each app In appEntries
                 If app.InstantaneousFrames > 0 Then
                     ValueFPS = CInt(app.InstantaneousFrames) 'FPS
                     SendDataToArduino(KeyFPS, ValueFPS)
-                ElseIf ValueFPS <> -1 Then
-                    ValueFPS = -1
-                    SendDataToArduino(KeyFPS, ValueFPS)
+                    registerFPS = True
+                    Exit For
                 End If
             Next
+            If ValueFPS <> -1 And registerFPS = False Then
+                ValueFPS = -1
+                SendDataToArduino(KeyFPS, ValueFPS)
+            End If
         Catch ex As Exception
             If Me.WindowState = FormWindowState.Normal Then
                 ListBox1.Items.Add("RTSS is missing... skipping FPS")
@@ -354,6 +397,7 @@ Public Class FormMain
     End Sub
 
     Private Sub ExitToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles ExitToolStripMenuItem.Click
+        FormCloseBool = True
         Me.Close()
     End Sub
 
