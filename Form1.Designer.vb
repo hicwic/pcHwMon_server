@@ -48,10 +48,10 @@ Partial Class FormMain
         'ListBox1
         '
         Me.ListBox1.FormattingEnabled = True
-        Me.ListBox1.ItemHeight = 16
-        Me.ListBox1.Location = New System.Drawing.Point(63, 82)
+        Me.ListBox1.Location = New System.Drawing.Point(47, 67)
+        Me.ListBox1.Margin = New System.Windows.Forms.Padding(2, 2, 2, 2)
         Me.ListBox1.Name = "ListBox1"
-        Me.ListBox1.Size = New System.Drawing.Size(450, 260)
+        Me.ListBox1.Size = New System.Drawing.Size(338, 212)
         Me.ListBox1.TabIndex = 1
         '
         'Timer1
@@ -138,32 +138,36 @@ Partial Class FormMain
         'LblRefresh
         '
         Me.LblRefresh.AutoSize = True
-        Me.LblRefresh.Location = New System.Drawing.Point(74, 406)
+        Me.LblRefresh.Location = New System.Drawing.Point(56, 330)
+        Me.LblRefresh.Margin = New System.Windows.Forms.Padding(2, 0, 2, 0)
         Me.LblRefresh.Name = "LblRefresh"
-        Me.LblRefresh.Size = New System.Drawing.Size(48, 16)
+        Me.LblRefresh.Size = New System.Drawing.Size(39, 13)
         Me.LblRefresh.TabIndex = 4
         Me.LblRefresh.Text = "Label1"
         '
         'Label1
         '
         Me.Label1.AutoSize = True
-        Me.Label1.Location = New System.Drawing.Point(74, 466)
+        Me.Label1.Location = New System.Drawing.Point(56, 379)
+        Me.Label1.Margin = New System.Windows.Forms.Padding(2, 0, 2, 0)
         Me.Label1.Name = "Label1"
-        Me.Label1.Size = New System.Drawing.Size(90, 16)
+        Me.Label1.Size = New System.Drawing.Size(73, 13)
         Me.Label1.TabIndex = 7
         Me.Label1.Text = "Disconnected"
         '
         'FormMain
         '
-        Me.AutoScaleDimensions = New System.Drawing.SizeF(8.0!, 16.0!)
+        Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
-        Me.ClientSize = New System.Drawing.Size(586, 540)
+        Me.ClientSize = New System.Drawing.Size(440, 439)
         Me.Controls.Add(Me.Label1)
         Me.Controls.Add(Me.LblRefresh)
         Me.Controls.Add(Me.ListBox1)
         Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.Fixed3D
         Me.Icon = CType(resources.GetObject("$this.Icon"), System.Drawing.Icon)
+        Me.Margin = New System.Windows.Forms.Padding(2, 2, 2, 2)
         Me.MaximizeBox = False
+        Me.MinimizeBox = False
         Me.Name = "FormMain"
         Me.ShowInTaskbar = False
         Me.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide
